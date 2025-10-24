@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.myenv/
+myenv/
+
+# Local data & embeddings
+data/*
+!data/processed/
+data/processed/*.json
+!data/processed/tickets_static.json
+chroma_db/
+chroma_db/**
+
+# Logs & caches
+logs/
+.cache/
+.hf_cache/
+**/.DS_Store
+
+# Env & secrets
+.env
+.env.*
+!.env.template
+
+# IDEs
+.vscode/
+.idea/
+
+# Build/Dist
+dist/
+build/

@@ -1,0 +1,10 @@
+google-generativeai
+chromadb
+loguru
+python-dotenv
+tqdm
+beautifulsoup4
+lxml
+requests
+fastapi
+uvicorn
