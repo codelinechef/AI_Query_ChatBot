@@ -16,7 +16,6 @@ A lightweight RAG-style chatbot that indexes Freshservice API docs and answers q
 - [Frontend Configuration](#frontend-configuration)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
-- [Deployment Notes](#deployment-notes)
 - [Security & Limits](#security--limits)
 - [Acknowledgements](#acknowledgements)
 
@@ -149,27 +148,6 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method POST -ContentTyp
 - Rate limit (HTTP 429):
   - Reduce request frequency or increase `RATE_LIMIT_MAX_PER_MIN`.
 
-## Deployment Notes
-- Production typically runs backend behind a reverse proxy (e.g., Nginx) and serves the frontend separately.
-- Example Nginx snippet (proxy API to Uvicorn on `8000` and serve static UI):
-```nginx
-server {
-    listen 80;
-    server_name example.com;
-
-    location /api/ {
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_pass http://127.0.0.1:8000;
-    }
-
-    location / {
-        root /var/www/rag_ui;  # folder containing static/index.html
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
 
 ## Security & Limits
 - Per-IP rate limiting on `/api/*` requests (defaults to 60/min).
