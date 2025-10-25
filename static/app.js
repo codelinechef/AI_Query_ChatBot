@@ -18,6 +18,9 @@ const savedTheme = localStorage.getItem('theme')
 root.setAttribute('data-theme', savedTheme);
 setToggleIcon(savedTheme);
 
+// API base for cross-origin calls (set window.__API_BASE__ on separate frontend port)
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) ? window.__API_BASE__ : '';
+
 function setToggleIcon(theme) {
   const iconEl = themeToggle.querySelector('.icon');
   if (iconEl) iconEl.textContent = theme === 'dark' ? '🌙' : '☀️';
@@ -200,7 +203,7 @@ async function sendQuestion(question) {
   let streamed = false;
   try {
     const ctrl = new AbortController();
-    const res = await fetch('/api/chat/stream', {
+    const res = await fetch(`${API_BASE}/api/chat/stream`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ question }),
@@ -242,7 +245,7 @@ async function sendQuestion(question) {
   if (!streamed) {
     // Fallback: standard JSON call
     try {
-      const res = await postJSON('/api/chat', { question });
+      const res = await postJSON(`${API_BASE}/api/chat`, { question });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const html = renderMarkdownLite(data.answer || 'No answer.');
@@ -276,6 +279,18 @@ aboutBtn.addEventListener('click', openAbout);
 aboutClose.addEventListener('click', closeAbout);
 aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) closeAbout(); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAbout(); });
+
+// Set about avatar image using asset base (supports cross-origin)
+(function(){
+  const ASSET_BASE = (typeof window !== 'undefined' && window.__ASSET_BASE__) ? window.__ASSET_BASE__ : API_BASE;
+  const avatarEl = document.querySelector('.avatar.galaxy');
+  if (avatarEl) {
+    const imgUrl = (ASSET_BASE ? ASSET_BASE : '') + '/images/about_avatar.jpg';
+    avatarEl.style.backgroundImage = `url('${imgUrl}')`;
+    avatarEl.style.backgroundSize = 'cover';
+    avatarEl.style.backgroundPosition = 'center';
+  }
+})();
 
 // Clear chat
 clearBtn.addEventListener('click', () => {

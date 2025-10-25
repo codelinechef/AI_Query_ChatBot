@@ -47,6 +47,7 @@ async def rate_limit_middleware(request, call_next):
 
 # Config guards
 MAX_QUESTION_CHARS = int(os.getenv("MAX_QUESTION_CHARS", "512"))
+BACKEND_ONLY = os.getenv("BACKEND_ONLY", "0") == "1"
 
 # Init Chroma on boot
 @app.on_event("startup")
@@ -113,9 +114,10 @@ async def api_chat_stream(req: Request):
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
-# Static frontend
-app.mount("/images", StaticFiles(directory="images"), name="images")
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Static frontend (disabled if BACKEND_ONLY=1)
+if not BACKEND_ONLY:
+    app.mount("/images", StaticFiles(directory="images"), name="images")
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RAG Gemini Chatbot</title>
   <link rel="stylesheet" href="/styles.css" />
+  <script>
+    // Optional query params to configure cross-origin bases: ?api=http://127.0.0.1:8000&assets=http://127.0.0.1:8000
+    (function(){
+      const qs = new URLSearchParams(location.search);
+      window.__API_BASE__ = qs.get('api') || '';
+      window.__ASSET_BASE__ = qs.get('assets') || window.__API_BASE__ || '';
+    })();
+  </script>
 </head>
 <body>
   <!-- Mid parallax blobs -->
@@ -54,7 +62,7 @@
     <button class="modal-close" id="about-close" aria-label="Close">✕</button>
     <div class="about-pill tilt" data-tilt="1.6">✨ About</div>
     <div class="modal-header">
-      <div class="avatar galaxy" style="background-image: url('/images/about_avatar.jpg'); background-size: cover; background-position: center;"></div>
+      <div class="avatar galaxy"></div>
       <div>
         <h2>Anant Sharma</h2>
         <p class="dim">AI Engineer</p>

@@ -72,6 +72,7 @@ def extract_page(url):
                     "title": title,
                     "link": href
                 })
+                
 
     # Extract main content
     content_div = soup.find("div", id="tickets", attrs={"data-itsm": True})
