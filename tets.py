@@ -100,8 +100,9 @@ def _embed_with_local(text: str):
     global local_embedder
     try:
         if local_embedder is None:
-            # Use ONNX-based MiniLM to avoid heavy torch installs
-            local_embedder = embedding_functions.ONNXMiniLM_L6_V2()
+            local_embedder = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=EMBED_FALLBACK_MODEL
+            )
         vecs = local_embedder([text])
         if isinstance(vecs, list) and len(vecs) >= 1:
             return [float(x) for x in vecs[0]]
@@ -309,7 +310,6 @@ def ask_gemini(prompt):
 # ==============================
 # QUERY LOGIC
 # ==============================
-
 def sanitize_input(text: str) -> str:
     """Prevents malicious prompt injection and system manipulation."""
     forbidden = ["ignore previous", "delete", "shutdown", "system", "run code", "eval"]
@@ -423,3 +423,29 @@ if __name__ == "__main__":
                 logger.exception(f"❌ Query failed: {e}")
     else:
         parser.print_help()
+
+
+# # Core web app
+# fastapi~=0.120
+# uvicorn~=0.30
+
+# # RAG + vector store
+# chromadb>=0.5,<0.6
+
+# # LLM client (Gemini)
+# google-generativeai~=0.7
+
+# # Utilities
+# loguru~=0.7
+# python-dotenv~=1.0
+
+# # Scraping pipeline
+# requests~=2.32
+# beautifulsoup4~=4.12
+# lxml~=5.2
+
+# # CLI / progress
+# tqdm~=4.66
+
+# # Local embedding fallback
+# sentence-transformers~=2.7

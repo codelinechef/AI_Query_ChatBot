@@ -1,10 +1,24 @@
-google-generativeai
-chromadb
-loguru
-python-dotenv
-tqdm
-beautifulsoup4
-lxml
-requests
-fastapi
-uvicorn
+# Core web app
+fastapi~=0.120
+uvicorn~=0.30
+
+# RAG + vector store
+chromadb>=0.5,<0.6
+
+# LLM client (Gemini)
+google-generativeai~=0.7
+
+# Utilities
+loguru~=0.7
+python-dotenv~=1.0
+
+# Scraping pipeline
+requests~=2.32
+beautifulsoup4~=4.12
+lxml~=5.2
+
+# CLI / progress
+tqdm~=4.66
+
+# Local embedding fallback (now ONNX-based via chromadb)
+# No extra package needed; chromadb depends on `onnxruntime` and `tokenizers`.

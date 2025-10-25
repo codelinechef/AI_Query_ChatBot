@@ -5,22 +5,53 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 import asyncio
 import assistant
+import os
+from collections import defaultdict, deque
+from time import time
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
 
 app = FastAPI(title="RAG Gemini Chatbot")
 
-# CORS
+# CORS (tighten via env)
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten for production
+    allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Simple per-IP rate limit for API endpoints
+RATE_LIMIT_MAX = int(os.getenv("RATE_LIMIT_MAX_PER_MIN", "60"))
+_rate_store = defaultdict(deque)
+
+@app.middleware("http")
+async def rate_limit_middleware(request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and request.method in {"POST", "GET"}:
+        now = time()
+        ip = getattr(request.client, "host", "unknown")
+        window = _rate_store[ip]
+        # prune entries older than 60s
+        while window and (now - window[0]) > 60:
+            window.popleft()
+        if len(window) >= RATE_LIMIT_MAX:
+            return JSONResponse({"error": "Too many requests"}, status_code=429)
+        window.append(now)
+    return await call_next(request)
+
+# Config guards
+MAX_QUESTION_CHARS = int(os.getenv("MAX_QUESTION_CHARS", "512"))
+
 # Init Chroma on boot
 @app.on_event("startup")
 def startup_event():
-    # your assistant module should expose init_chroma(rebuild=False)
+    # assistant module should expose init_chroma(rebuild=False)
     if hasattr(assistant, "init_chroma"):
         assistant.init_chroma(rebuild=False)
 
@@ -32,6 +63,8 @@ async def api_query(req: Request):
         question = (payload.get("question") or "").strip()
         if not question:
             return JSONResponse({"error": "Question is required."}, status_code=400)
+        if len(question) > MAX_QUESTION_CHARS:
+            return JSONResponse({"error": "Question too long."}, status_code=413)
 
         result = assistant.query_api(question)
         return JSONResponse({
@@ -53,6 +86,8 @@ async def api_chat_stream(req: Request):
     question = (payload.get("question") or "").strip()
     if not question:
         return JSONResponse({"error": "Question is required."}, status_code=400)
+    if len(question) > MAX_QUESTION_CHARS:
+        return JSONResponse({"error": "Question too long."}, status_code=413)
 
     async def gen():
         # If you implement assistant.stream_query(question) yielding tokens/chunks, plug in here.
